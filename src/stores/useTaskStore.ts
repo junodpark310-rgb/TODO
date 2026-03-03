@@ -20,6 +20,9 @@ interface TaskStore {
   addSubtask: (taskId: string, title: string) => void
   toggleSubtask: (taskId: string, subtaskId: string) => void
   deleteSubtask: (taskId: string, subtaskId: string) => void
+
+  /** 지정 날짜 이전의 미완료 태스크를 toDate로 이전 */
+  rolloverTasks: (toDate: string) => void
 }
 
 export const useTaskStore = create<TaskStore>()(
@@ -124,6 +127,16 @@ export const useTaskStore = create<TaskStore>()(
           tasks: state.tasks.map((t) =>
             t.id === taskId
               ? { ...t, subtasks: t.subtasks.filter((s) => s.id !== subtaskId) }
+              : t
+          ),
+        }))
+      },
+
+      rolloverTasks: (toDate) => {
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.date < toDate && t.status !== 'done'
+              ? { ...t, date: toDate }
               : t
           ),
         }))

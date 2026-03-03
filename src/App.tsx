@@ -7,7 +7,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTaskStore } from './stores/useTaskStore'
 import { useCalendarStore } from './stores/useCalendarStore'
 import { CalendarUIProvider } from './contexts/CalendarContext'
@@ -17,6 +17,7 @@ import { TimelineView } from './components/calendar/TimelineView'
 import { DateNav } from './components/layout/DateNav'
 import { StatsModal } from './components/stats/StatsModal'
 import { addMinutesToTime } from './utils/timeUtils'
+import { todayString } from './utils/date'
 import type { Task } from './types/task'
 
 function DragPreview({ task }: { task: Task }) {
@@ -28,11 +29,16 @@ function DragPreview({ task }: { task: Task }) {
 }
 
 function AppInner() {
-  const { tasks, setBigThree, removeBigThree, selectedDate } = useTaskStore()
+  const { tasks, setBigThree, removeBigThree, selectedDate, rolloverTasks } = useTaskStore()
   const { addTimebox } = useCalendarStore()
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showStats, setShowStats] = useState(false)
   const importRef = useRef<HTMLInputElement>(null)
+
+  // 앱 시작 시 이전 날짜 미완료 태스크를 오늘로 자동 이전
+  useEffect(() => {
+    rolloverTasks(todayString())
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })

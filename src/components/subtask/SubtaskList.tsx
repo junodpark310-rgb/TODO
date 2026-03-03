@@ -14,6 +14,7 @@ export function SubtaskList({ task }: Props) {
   const total = task.subtasks.length
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.nativeEvent.isComposing) return // 한글 IME 조합 중 Enter 무시
     if (e.key === 'Enter' && input.trim()) {
       addSubtask(task.id, input)
       setInput('')

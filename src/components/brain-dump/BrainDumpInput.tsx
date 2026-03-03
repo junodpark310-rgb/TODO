@@ -7,6 +7,7 @@ export function BrainDumpInput() {
   const addTask = useTaskStore((s) => s.addTask)
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.nativeEvent.isComposing) return // 한글 IME 조합 중 Enter 무시
     if (e.key === 'Enter' && value.trim()) {
       addTask(value)
       setValue('')
