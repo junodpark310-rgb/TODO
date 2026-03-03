@@ -17,6 +17,7 @@ import { DesktopLayout } from './components/layout/DesktopLayout'
 import { MobileLayout } from './components/layout/MobileLayout'
 import { StatsModal } from './components/stats/StatsModal'
 import { useMediaQuery } from './hooks/useMediaQuery'
+import { hapticLight, hapticSuccess } from './hooks/useHaptic'
 import { addMinutesToTime } from './utils/timeUtils'
 import { todayString } from './utils/date'
 import type { Task } from './types/task'
@@ -29,11 +30,23 @@ function DragPreview({ task }: { task: Task }) {
   )
 }
 
+/** 타임라인을 현재 시각 위치로 즉시 스크롤 */
+function scrollTimelineToNow() {
+  const el = document.getElementById('calendar-scroll')
+  if (!el) return
+  const now = new Date()
+  const h = now.getHours()
+  if (h < 6 || h >= 24) return
+  const fraction = ((h - 6) * 60 + now.getMinutes()) / ((24 - 6) * 60)
+  el.scrollTo({ top: Math.max(0, fraction * el.scrollHeight - el.clientHeight * 0.3), behavior: 'instant' })
+}
+
 function AppInner() {
   const { tasks, setBigThree, removeBigThree, selectedDate, rolloverTasks } = useTaskStore()
   const { addTimebox } = useCalendarStore()
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showStats, setShowStats] = useState(false)
+  const [mobileTab, setMobileTab] = useState<'dump' | 'timeline'>('timeline')
   const importRef = useRef<HTMLInputElement>(null)
   const isMobile = useMediaQuery('(max-width: 767px)')
 
@@ -49,7 +62,16 @@ function AppInner() {
 
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id)
-    if (task) setActiveTask(task)
+    if (task) {
+      setActiveTask(task)
+      // 모바일 + Brain Dump 출처: 타임라인 탭으로 자동 전환 + 현재 시각으로 스크롤
+      if (isMobile && event.active.data.current?.source === 'brain-dump') {
+        hapticLight()
+        setMobileTab('timeline')
+        // 탭 전환 후 렌더링 완료 시점에 스크롤
+        requestAnimationFrame(() => requestAnimationFrame(scrollTimelineToNow))
+      }
+    }
   }
 
   function handleDragEnd(event: DragEndEvent) {
@@ -77,6 +99,7 @@ function AppInner() {
       const task = tasks.find((t) => t.id === taskId)
       const durationMin = task?.estimatedMin ?? 60
       addTimebox({ taskId, date: targetDate, startTime, endTime: addMinutesToTime(startTime, durationMin) })
+      hapticSuccess()
     }
   }
 
@@ -127,8 +150,8 @@ function AppInner() {
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col h-screen bg-base">
-        {/* 헤더 */}
-        <header className="flex items-center justify-between px-6 py-3 border-b border-overlay bg-surface flex-shrink-0">
+        {/* 헤더 — safe-top: iOS 노치 영역 확보 */}
+        <header className="flex items-center justify-between px-6 py-3 border-b border-overlay bg-surface flex-shrink-0 safe-top">
           <div className="flex items-center gap-2">
             <span className="text-lg">⏱</span>
             <span className="text-sm font-bold text-text">Timebox</span>
@@ -163,7 +186,10 @@ function AppInner() {
         </header>
 
         {/* 메인 — 모바일: 탭 네비게이션 / 데스크탑: 3컬럼 */}
-        {isMobile ? <MobileLayout /> : <DesktopLayout />}
+        {isMobile
+          ? <MobileLayout activeTab={mobileTab} onTabChange={setMobileTab} />
+          : <DesktopLayout />
+        }
       </div>
 
       <DragOverlay dropAnimation={null}>

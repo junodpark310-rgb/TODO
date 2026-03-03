@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#181825"/>
+  <!-- 시계 몸체 -->
+  <circle cx="256" cy="288" r="156" stroke="#6366f1" stroke-width="28" fill="none"/>
+  <!-- 12시 방향 돌출부 -->
+  <rect x="226" y="100" width="60" height="32" rx="16" fill="#6366f1"/>
+  <!-- 시침 -->
+  <line x1="256" y1="288" x2="256" y2="178" stroke="#cdd6f4" stroke-width="24" stroke-linecap="round"/>
+  <!-- 분침 -->
+  <line x1="256" y1="288" x2="324" y2="330" stroke="#6366f1" stroke-width="20" stroke-linecap="round"/>
+  <!-- 중심점 -->
+  <circle cx="256" cy="288" r="12" fill="#6366f1"/>
+</svg>

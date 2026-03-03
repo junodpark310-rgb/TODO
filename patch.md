@@ -2,6 +2,22 @@
 
 ---
 
+## v0.4.0 — 모바일 대응 Phase 4 ✅
+
+**목표**: PWA 설치 + Safe area + 진동 피드백 + 롱프레스 드래그 타임라인 자동 전환
+
+| # | 작업 | 상태 |
+|---|------|------|
+| 1 | `vite-plugin-pwa` — manifest, icon, SW 자동 등록 | ✅ |
+| 2 | `index.html` — `viewport-fit=cover`, theme-color, iOS PWA 메타태그 | ✅ |
+| 3 | `index.css` — `.safe-top` / `.safe-bottom` 유틸리티 (env safe-area-inset) | ✅ |
+| 4 | `useHaptic.ts` — `hapticLight` (50ms) / `hapticSuccess` ([30,20,30]) | ✅ |
+| 5 | 롱프레스 → 타임라인 자동 전환: `mobileTab` App.tsx로 lift, `source:'brain-dump'` 구분 | ✅ |
+| 6 | 드래그 시작 시 진동 + 현재 시각으로 타임라인 자동 스크롤 | ✅ |
+| 7 | 타임박스 배치 성공 시 진동 피드백 | ✅ |
+
+---
+
 ## v0.3.0 — 모바일 대응 Phase 3 ✅
 
 **목표**: 터치 인터랙션 완성 — PointerEvent 기반 드래그/리사이즈 + Tap-to-Assign UX
@@ -76,5 +92,5 @@
 |------|------|
 | v0.2.0 | 모바일 대응 Phase 2 — 하단 탭 네비게이션 ✅ |
 | v0.3.0 | 모바일 대응 Phase 3 — 터치 인터랙션 완성 (PointerEvent) ✅ |
-| v0.4.0 | 모바일 대응 Phase 4 — PWA, Safe area, 진동 피드백 |
+| v0.4.0 | 모바일 대응 Phase 4 — PWA, Safe area, 진동 피드백, 롱프레스 드래그 전환 ✅ |
 | 미정 | 멀티 기기 동기화 (Supabase Realtime + Auth) |

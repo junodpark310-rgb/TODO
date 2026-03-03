@@ -35,7 +35,7 @@ export function TaskCard({ task, isScheduled = false, onAssign }: Props) {
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
-    data: { type: 'task', task },
+    data: { type: 'task', task, source: 'brain-dump' },
   })
 
   const style: React.CSSProperties = {
