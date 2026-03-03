@@ -3,11 +3,10 @@ import { BrainDumpPanel } from '../brain-dump/BrainDumpPanel'
 import { BigThreePanel } from '../big-three/BigThreePanel'
 import { TimelineView } from '../calendar/TimelineView'
 
-type Tab = 'brain-dump' | 'big-three' | 'timeline'
+type Tab = 'dump' | 'timeline'
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'brain-dump', label: '덤프', icon: '📋' },
-  { id: 'big-three', label: 'Big 3', icon: '⭐' },
+  { id: 'dump', label: '덤프', icon: '📋' },
   { id: 'timeline', label: '타임라인', icon: '⏱' },
 ]
 
@@ -17,8 +16,17 @@ export function MobileLayout() {
   return (
     <>
       <main className="flex-1 overflow-hidden min-h-0">
-        {activeTab === 'brain-dump' && <BrainDumpPanel />}
-        {activeTab === 'big-three' && <BigThreePanel />}
+        {activeTab === 'dump' && (
+          <div className="flex flex-col h-full overflow-hidden">
+            {/* Big 3 — 자연 높이 (3슬롯 고정) */}
+            <BigThreePanel compact />
+            <div className="border-t border-overlay flex-shrink-0" />
+            {/* Brain Dump — 나머지 공간 */}
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <BrainDumpPanel />
+            </div>
+          </div>
+        )}
         {activeTab === 'timeline' && <TimelineView />}
       </main>
 

@@ -2,7 +2,7 @@ import { useTaskStore } from '../../stores/useTaskStore'
 import { BigThreeSlot } from './BigThreeSlot'
 import type { Task } from '../../types/task'
 
-export function BigThreePanel() {
+export function BigThreePanel({ compact = false }: { compact?: boolean }) {
   const tasks = useTaskStore((s) => s.tasks)
   const selectedDate = useTaskStore((s) => s.selectedDate)
 
@@ -16,7 +16,7 @@ export function BigThreePanel() {
   const filled = slots.filter(Boolean).length
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={`flex flex-col ${compact ? '' : 'h-full'}`}>
       <div className="px-4 py-3 border-b border-overlay">
         <h2 className="text-sm font-semibold text-subtext uppercase tracking-wider">
           Big 3
@@ -24,7 +24,7 @@ export function BigThreePanel() {
         <p className="text-xs text-muted mt-0.5">오늘의 핵심 {filled}/3</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
+      <div className={`${compact ? '' : 'flex-1'} overflow-y-auto px-3 py-3 flex flex-col gap-3`}>
         {[0, 1, 2].map((slot) => (
           <BigThreeSlot key={slot} slot={slot} task={slots[slot]} />
         ))}
