@@ -4,6 +4,7 @@ import { useCalendarUI } from '../../contexts/CalendarContext'
 import { TimeBlock } from './TimeBlock'
 import { TimeSlot } from './TimeSlot'
 import { getSlotTimes, timeToY } from '../../utils/timeUtils'
+import { assignColumns } from '../../utils/layout'
 import { getWeekDates, formatShortDate, formatDayName, todayString } from '../../utils/date'
 import type { Task } from '../../types/task'
 
@@ -26,6 +27,10 @@ export function WeekView() {
 
   function getTimeboxesForDate(date: string) {
     return timeboxes.filter((tb) => tb.date === date)
+  }
+
+  function getColumnMapForDate(date: string) {
+    return assignColumns(getTimeboxesForDate(date))
   }
 
   return (
@@ -80,6 +85,8 @@ export function WeekView() {
             const isToday = date === today
             const dayTimeboxes = getTimeboxesForDate(date)
 
+            const columnMap = getColumnMapForDate(date)
+
             return (
               <div
                 key={date}
@@ -106,7 +113,12 @@ export function WeekView() {
 
                 {/* 타임 블록 */}
                 {dayTimeboxes.map((tb) => (
-                  <TimeBlock key={tb.id} timebox={tb} task={getTask(tb.taskId)} />
+                  <TimeBlock
+                    key={tb.id}
+                    timebox={tb}
+                    task={getTask(tb.taskId)}
+                    columnInfo={columnMap.get(tb.id)}
+                  />
                 ))}
               </div>
             )

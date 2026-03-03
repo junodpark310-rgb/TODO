@@ -5,6 +5,7 @@ import { TimeBlock } from './TimeBlock'
 import { TimeSlot } from './TimeSlot'
 import { WeekView } from './WeekView'
 import { getSlotTimes, timeToY, addMinutesToTime, timeToMinutes } from '../../utils/timeUtils'
+import { assignColumns } from '../../utils/layout'
 import type { Task } from '../../types/task'
 
 const LABEL_WIDTH = 52
@@ -32,6 +33,7 @@ export function TimelineView() {
 
   const slotTimes = getSlotTimes()
   const todayTimeboxes = timeboxes.filter((tb) => tb.date === selectedDate)
+  const columnMap = assignColumns(todayTimeboxes)
 
   function getTask(taskId: string | null): Task | null {
     if (!taskId) return null
@@ -138,7 +140,12 @@ export function TimelineView() {
               <CurrentTimeLine slotHeight={slotHeight} />
 
               {todayTimeboxes.map((tb) => (
-                <TimeBlock key={tb.id} timebox={tb} task={getTask(tb.taskId)} />
+                <TimeBlock
+                  key={tb.id}
+                  timebox={tb}
+                  task={getTask(tb.taskId)}
+                  columnInfo={columnMap.get(tb.id)}
+                />
               ))}
             </div>
           </div>

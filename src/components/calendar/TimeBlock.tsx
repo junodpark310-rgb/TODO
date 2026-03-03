@@ -11,13 +11,17 @@ import {
   addMinutesToTime,
   timeDiffMinutes,
 } from '../../utils/timeUtils'
+import type { ColumnInfo } from '../../utils/layout'
+
+const GAP = 3 // 블록 간 좌우 간격(px)
 
 interface Props {
   timebox: Timebox
   task: Task | null
+  columnInfo?: ColumnInfo
 }
 
-export function TimeBlock({ timebox, task }: Props) {
+export function TimeBlock({ timebox, task, columnInfo }: Props) {
   const { updateTimebox, deleteTimebox, startTracking, stopTracking } = useCalendarStore()
   const { toggleDone } = useTaskStore()
   const { slotHeight } = useCalendarUI()
@@ -28,6 +32,11 @@ export function TimeBlock({ timebox, task }: Props) {
   const top = timeToY(timebox.startTime, slotHeight)
   const height = blockHeight(timebox.startTime, timebox.endTime, slotHeight)
   const duration = timeDiffMinutes(timebox.startTime, timebox.endTime)
+
+  const col = columnInfo?.column ?? 0
+  const total = columnInfo?.totalColumns ?? 1
+  const leftStyle = `calc(${(col / total) * 100}% + ${GAP}px)`
+  const rightStyle = `calc(${((total - col - 1) / total) * 100}% + ${GAP}px)`
 
   const isDone = task?.status === 'done'
   const isTracking = !!(timebox.actualStart && !timebox.actualEnd)
@@ -96,7 +105,7 @@ export function TimeBlock({ timebox, task }: Props) {
   return (
     <div
       onMouseDown={handleMoveStart}
-      style={{ top, height, position: 'absolute', left: 8, right: 8, zIndex: 10 }}
+      style={{ top, height, position: 'absolute', left: leftStyle, right: rightStyle, zIndex: 10 }}
       className={`rounded-lg border flex flex-col group select-none overflow-hidden transition-shadow hover:shadow-lg ${
         timebox.isBuffer
           ? 'bg-muted/20 border-muted/40 cursor-default'
