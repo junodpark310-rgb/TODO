@@ -12,7 +12,25 @@ interface Props {
 
 export function TaskCard({ task, isScheduled = false }: Props) {
   const [expanded, setExpanded] = useState(false)
-  const { deleteTask, toggleDone } = useTaskStore()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState('')
+  const { deleteTask, toggleDone, updateTask } = useTaskStore()
+
+  function startEdit() {
+    setEditValue(task.title)
+    setIsEditing(true)
+  }
+
+  function commitEdit() {
+    const trimmed = editValue.trim()
+    if (trimmed && trimmed !== task.title) updateTask(task.id, { title: trimmed })
+    setIsEditing(false)
+  }
+
+  function handleEditKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') commitEdit()
+    if (e.key === 'Escape') setIsEditing(false)
+  }
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
@@ -48,9 +66,24 @@ export function TaskCard({ task, isScheduled = false }: Props) {
         />
 
         {/* 제목 */}
-        <span className={`flex-1 text-sm ${task.status === 'done' ? 'line-through text-muted' : 'text-text'}`}>
-          {task.title}
-        </span>
+        {isEditing ? (
+          <input
+            autoFocus
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={handleEditKeyDown}
+            onBlur={commitEdit}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="flex-1 text-sm bg-base text-text border border-primary/50 rounded px-1 outline-none"
+          />
+        ) : (
+          <span
+            onDoubleClick={(e) => { e.stopPropagation(); startEdit() }}
+            className={`flex-1 text-sm ${task.status === 'done' ? 'line-through text-muted' : 'text-text'}`}
+          >
+            {task.title}
+          </span>
+        )}
 
         {/* 캘린더 배치 뱃지 */}
         {isScheduled && (
