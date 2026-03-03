@@ -7,9 +7,10 @@ import { SubtaskList } from '../subtask/SubtaskList'
 
 interface Props {
   task: Task
+  isScheduled?: boolean
 }
 
-export function TaskCard({ task }: Props) {
+export function TaskCard({ task, isScheduled = false }: Props) {
   const [expanded, setExpanded] = useState(false)
   const { deleteTask, toggleDone } = useTaskStore()
 
@@ -20,7 +21,7 @@ export function TaskCard({ task }: Props) {
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.4 : isScheduled ? 0.6 : 1,
   }
 
   const doneCount = task.subtasks.filter((s) => s.isDone).length
@@ -50,6 +51,13 @@ export function TaskCard({ task }: Props) {
         <span className={`flex-1 text-sm ${task.status === 'done' ? 'line-through text-muted' : 'text-text'}`}>
           {task.title}
         </span>
+
+        {/* 캘린더 배치 뱃지 */}
+        {isScheduled && (
+          <span className="text-[10px] text-primary/70 flex-shrink-0" title="캘린더에 배치됨">
+            📅
+          </span>
+        )}
 
         {/* 서브태스크 진행률 뱃지 */}
         {hasSubtasks && (
