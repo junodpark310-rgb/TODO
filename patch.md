@@ -2,6 +2,19 @@
 
 ---
 
+## v0.3.0 — 모바일 대응 Phase 3 ✅
+
+**목표**: 터치 인터랙션 완성 — PointerEvent 기반 드래그/리사이즈 + Tap-to-Assign UX
+
+| # | 작업 | 상태 |
+|---|------|------|
+| 1 | `TimeBlock.tsx` — MouseEvent → PointerEvent (`setPointerCapture`) 전환 | ✅ |
+| 2 | `TimeBlock.tsx` — 리사이즈 핸들 터치 영역 확대 (`h-2` → `h-4`) | ✅ |
+| 3 | `TaskCard.tsx` — `onAssign` prop + ⏱ 탭-투-어사인 버튼 (터치 기기 전용) | ✅ |
+| 4 | `BrainDumpPanel.tsx` — `handleAssign`: 마지막 블록 이후에 자동 배치 | ✅ |
+
+---
+
 ## v0.2.0 — 모바일 대응 Phase 2 ✅
 
 **목표**: 하단 탭 네비게이션으로 네이티브 앱 수준의 모바일 UX
@@ -62,6 +75,6 @@
 | 버전 | 내용 |
 |------|------|
 | v0.2.0 | 모바일 대응 Phase 2 — 하단 탭 네비게이션 ✅ |
-| v0.3.0 | 모바일 대응 Phase 3 — 터치 인터랙션 완성 (PointerEvent) |
+| v0.3.0 | 모바일 대응 Phase 3 — 터치 인터랙션 완성 (PointerEvent) ✅ |
 | v0.4.0 | 모바일 대응 Phase 4 — PWA, Safe area, 진동 피드백 |
 | 미정 | 멀티 기기 동기화 (Supabase Realtime + Auth) |

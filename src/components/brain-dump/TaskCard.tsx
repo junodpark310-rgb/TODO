@@ -8,9 +8,10 @@ import { SubtaskList } from '../subtask/SubtaskList'
 interface Props {
   task: Task
   isScheduled?: boolean
+  onAssign?: () => void
 }
 
-export function TaskCard({ task, isScheduled = false }: Props) {
+export function TaskCard({ task, isScheduled = false, onAssign }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState('')
@@ -97,6 +98,18 @@ export function TaskCard({ task, isScheduled = false }: Props) {
           <span className="text-[10px] text-muted flex-shrink-0">
             {doneCount}/{totalCount}
           </span>
+        )}
+
+        {/* 탭-투-어사인 버튼 — 터치 기기에서만 표시, 이미 배치된 경우 숨김 */}
+        {onAssign && !isScheduled && (
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onAssign() }}
+            className="hidden [@media(hover:none)]:flex text-muted hover:text-primary text-xs flex-shrink-0 transition-colors"
+            title="타임라인에 추가"
+          >
+            ⏱
+          </button>
         )}
 
         {/* 확장 버튼 */}

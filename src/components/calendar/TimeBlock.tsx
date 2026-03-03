@@ -29,6 +29,17 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
   const lastMoveSlot = useRef(0)
   const lastResizeSlot = useRef(0)
 
+  // Move refs
+  const moveActiveRef = useRef(false)
+  const moveStartYRef = useRef(0)
+  const moveOrigStartRef = useRef('')
+  const moveOrigEndRef = useRef('')
+
+  // Resize refs
+  const resizeActiveRef = useRef(false)
+  const resizeStartYRef = useRef(0)
+  const resizeOrigEndRef = useRef('')
+
   const top = timeToY(timebox.startTime, slotHeight)
   const height = blockHeight(timebox.startTime, timebox.endTime, slotHeight)
   const duration = timeDiffMinutes(timebox.startTime, timebox.endTime)
@@ -42,69 +53,68 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
   const isTracking = !!(timebox.actualStart && !timebox.actualEnd)
   const isFinished = !!(timebox.actualStart && timebox.actualEnd)
 
-  function handleMoveStart(e: React.MouseEvent) {
+  // 블록 이동 — PointerEvent + setPointerCapture
+  function handleMovePointerDown(e: React.PointerEvent) {
     if ((e.target as HTMLElement).closest('[data-handle]')) return
     e.preventDefault()
-
-    const startY = e.clientY
-    const origStart = timebox.startTime
-    const origEnd = timebox.endTime
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    moveActiveRef.current = true
+    moveStartYRef.current = e.clientY
+    moveOrigStartRef.current = timebox.startTime
+    moveOrigEndRef.current = timebox.endTime
     lastMoveSlot.current = 0
-
-    function onMove(e: MouseEvent) {
-      const deltaSlots = Math.round((e.clientY - startY) / slotHeight)
-      if (deltaSlots === lastMoveSlot.current) return
-      lastMoveSlot.current = deltaSlots
-
-      const deltaMinutes = deltaSlots * SLOT_MINUTES
-      const newStart = addMinutesToTime(origStart, deltaMinutes)
-      const newEnd = addMinutesToTime(origEnd, deltaMinutes)
-      if (newStart !== newEnd) updateTimebox(timebox.id, { startTime: newStart, endTime: newEnd })
-    }
-
-    function onUp() {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseup', onUp)
-    }
-
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp)
   }
 
-  function handleResizeStart(e: React.MouseEvent) {
+  function handleMovePointerMove(e: React.PointerEvent) {
+    if (!moveActiveRef.current) return
+    const deltaSlots = Math.round((e.clientY - moveStartYRef.current) / slotHeight)
+    if (deltaSlots === lastMoveSlot.current) return
+    lastMoveSlot.current = deltaSlots
+    const deltaMinutes = deltaSlots * SLOT_MINUTES
+    const newStart = addMinutesToTime(moveOrigStartRef.current, deltaMinutes)
+    const newEnd = addMinutesToTime(moveOrigEndRef.current, deltaMinutes)
+    if (newStart !== newEnd) updateTimebox(timebox.id, { startTime: newStart, endTime: newEnd })
+  }
+
+  function handleMovePointerUp() {
+    moveActiveRef.current = false
+  }
+
+  // 리사이즈 — PointerEvent + setPointerCapture
+  function handleResizePointerDown(e: React.PointerEvent) {
     e.preventDefault()
     e.stopPropagation()
-
-    const startY = e.clientY
-    const origEnd = timebox.endTime
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    resizeActiveRef.current = true
+    resizeStartYRef.current = e.clientY
+    resizeOrigEndRef.current = timebox.endTime
     lastResizeSlot.current = 0
+  }
 
-    function onMove(e: MouseEvent) {
-      const deltaSlots = Math.round((e.clientY - startY) / slotHeight)
-      if (deltaSlots === lastResizeSlot.current) return
-      lastResizeSlot.current = deltaSlots
-
-      const newEnd = addMinutesToTime(origEnd, deltaSlots * SLOT_MINUTES)
-      if (timeDiffMinutes(timebox.startTime, newEnd) >= SLOT_MINUTES) {
-        // pushSubsequent: true → 뒤 블록 자동 밀기
-        updateTimebox(timebox.id, { endTime: newEnd }, true)
-      }
+  function handleResizePointerMove(e: React.PointerEvent) {
+    if (!resizeActiveRef.current) return
+    e.stopPropagation()
+    const deltaSlots = Math.round((e.clientY - resizeStartYRef.current) / slotHeight)
+    if (deltaSlots === lastResizeSlot.current) return
+    lastResizeSlot.current = deltaSlots
+    const newEnd = addMinutesToTime(resizeOrigEndRef.current, deltaSlots * SLOT_MINUTES)
+    if (timeDiffMinutes(timebox.startTime, newEnd) >= SLOT_MINUTES) {
+      updateTimebox(timebox.id, { endTime: newEnd }, true)
     }
+  }
 
-    function onUp() {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseup', onUp)
-    }
-
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp)
+  function handleResizePointerUp(e: React.PointerEvent) {
+    e.stopPropagation()
+    resizeActiveRef.current = false
   }
 
   const showTracking = !timebox.isBuffer && height >= slotHeight * 1.5
 
   return (
     <div
-      onMouseDown={handleMoveStart}
+      onPointerDown={handleMovePointerDown}
+      onPointerMove={handleMovePointerMove}
+      onPointerUp={handleMovePointerUp}
       style={{ top, height, position: 'absolute', left: leftStyle, right: rightStyle, zIndex: 10 }}
       className={`rounded-lg border flex flex-col group select-none overflow-hidden transition-shadow hover:shadow-lg ${
         timebox.isBuffer
@@ -129,7 +139,7 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
         </div>
         <button
           data-handle="delete"
-          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={() => deleteTimebox(timebox.id)}
           className="text-muted hover:text-red text-[10px] opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
         >
@@ -142,7 +152,7 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
           {!timebox.actualStart && (
             <button
               data-handle="track"
-              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={() => startTracking(timebox.id)}
               className="text-[10px] px-2 py-0.5 rounded bg-primary/30 hover:bg-primary/50 text-text transition-colors"
             >
@@ -154,7 +164,7 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
               <span className="text-[10px] text-blue">{timebox.actualStart} 시작</span>
               <button
                 data-handle="track"
-                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={() => { stopTracking(timebox.id); if (task) toggleDone(task.id) }}
                 className="text-[10px] px-2 py-0.5 rounded bg-green/30 hover:bg-green/50 text-text transition-colors"
               >
@@ -168,10 +178,13 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
         </div>
       )}
 
+      {/* 리사이즈 핸들 — 터치 영역 확대 (h-4) */}
       <div
         data-handle="resize"
-        onMouseDown={handleResizeStart}
-        className="h-2 w-full cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex-shrink-0"
+        onPointerDown={handleResizePointerDown}
+        onPointerMove={handleResizePointerMove}
+        onPointerUp={handleResizePointerUp}
+        className="h-4 w-full cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex-shrink-0"
       >
         <div className="w-6 h-0.5 rounded-full bg-current opacity-30" />
       </div>

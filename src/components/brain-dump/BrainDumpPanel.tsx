@@ -4,11 +4,19 @@ import { useTaskStore } from '../../stores/useTaskStore'
 import { useCalendarStore } from '../../stores/useCalendarStore'
 import { BrainDumpInput } from './BrainDumpInput'
 import { TaskCard } from './TaskCard'
+import type { Task } from '../../types/task'
+import {
+  timeToMinutes,
+  minutesToTime,
+  addMinutesToTime,
+  SLOT_MINUTES,
+} from '../../utils/timeUtils'
 
 export function BrainDumpPanel() {
   const tasks = useTaskStore((s) => s.tasks)
   const selectedDate = useTaskStore((s) => s.selectedDate)
   const timeboxes = useCalendarStore((s) => s.timeboxes)
+  const addTimebox = useCalendarStore((s) => s.addTimebox)
   const [doneOpen, setDoneOpen] = useState(false)
 
   const scheduledTaskIds = new Set(
@@ -23,6 +31,35 @@ export function BrainDumpPanel() {
   const doneTasks = tasks.filter(
     (t) => t.date === selectedDate && t.status === 'done'
   )
+
+  /** 선택일 마지막 블록 다음에 태스크를 타임라인에 배치 */
+  function handleAssign(task: Task) {
+    const dayBoxes = timeboxes.filter((tb) => tb.date === selectedDate)
+    let startTime: string
+
+    if (dayBoxes.length > 0) {
+      // 가장 늦게 끝나는 블록의 endTime에 이어서 배치
+      const lastEnd = dayBoxes.reduce((max, tb) =>
+        timeToMinutes(tb.endTime) > timeToMinutes(max) ? tb.endTime : max,
+        '00:00'
+      )
+      startTime = lastEnd
+    } else {
+      // 타임박스 없으면 현재 시각을 30분 단위로 올림
+      const now = new Date()
+      const totalMin = now.getHours() * 60 + now.getMinutes()
+      const rounded = Math.ceil(totalMin / SLOT_MINUTES) * SLOT_MINUTES
+      startTime = minutesToTime(rounded)
+    }
+
+    const durationMin = task.estimatedMin ?? 60
+    addTimebox({
+      taskId: task.id,
+      date: selectedDate,
+      startTime,
+      endTime: addMinutesToTime(startTime, durationMin),
+    })
+  }
 
   const { setNodeRef, isOver } = useDroppable({
     id: 'brain-dump',
@@ -59,6 +96,7 @@ export function BrainDumpPanel() {
               key={task.id}
               task={task}
               isScheduled={scheduledTaskIds.has(task.id)}
+              onAssign={() => handleAssign(task)}
             />
           ))
         )}
