@@ -113,7 +113,7 @@ export function TaskCard({ task, isScheduled = false }: Props) {
         <button
           onMouseDown={(e) => e.stopPropagation()}
           onClick={() => deleteTask(task.id)}
-          className="text-muted opacity-0 group-hover:opacity-100 hover:text-red transition-all text-xs flex-shrink-0"
+          className="text-muted opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 hover:text-red transition-all text-xs flex-shrink-0"
         >
           ✕
         </button>

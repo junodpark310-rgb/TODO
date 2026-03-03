@@ -2,6 +2,7 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -33,6 +34,8 @@ function AppInner() {
   const { addTimebox } = useCalendarStore()
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showStats, setShowStats] = useState(false)
+  const [brainDumpOpen, setBrainDumpOpen] = useState(true)
+  const [bigThreeOpen, setBigThreeOpen] = useState(true)
   const importRef = useRef<HTMLInputElement>(null)
 
   // 앱 시작 시 이전 날짜 미완료 태스크를 오늘로 자동 이전
@@ -41,7 +44,8 @@ function AppInner() {
   }, [])
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
   )
 
   function handleDragStart(event: DragStartEvent) {
@@ -159,17 +163,42 @@ function AppInner() {
           </div>
         </header>
 
-        {/* 3컬럼 메인 */}
-        <main className="flex flex-1 overflow-hidden">
-          <div className="w-64 flex-shrink-0 border-r border-overlay overflow-hidden">
-            <BrainDumpPanel />
+        {/* 메인 — 모바일: 세로 스택 / 데스크탑: 3컬럼 */}
+        <main className="flex flex-col md:flex-row flex-1 overflow-hidden">
+
+          {/* Brain Dump */}
+          <div className={`flex-shrink-0 border-b md:border-b-0 md:border-r border-overlay md:w-64 flex flex-col transition-all ${brainDumpOpen ? 'max-h-[42vh] md:max-h-none' : 'max-h-10 md:max-h-none'}`}>
+            <button
+              className="md:hidden flex items-center justify-between px-4 py-2.5 text-sm font-semibold text-subtext flex-shrink-0"
+              onClick={() => setBrainDumpOpen((v) => !v)}
+            >
+              <span>Brain Dump</span>
+              <span className="text-xs">{brainDumpOpen ? '▾' : '▸'}</span>
+            </button>
+            <div className={`flex-1 overflow-hidden min-h-0 ${brainDumpOpen ? '' : 'hidden md:flex'} md:flex md:flex-col`}>
+              <BrainDumpPanel />
+            </div>
           </div>
-          <div className="w-60 flex-shrink-0 border-r border-overlay overflow-hidden">
-            <BigThreePanel />
+
+          {/* Big 3 */}
+          <div className={`flex-shrink-0 border-b md:border-b-0 md:border-r border-overlay md:w-60 flex flex-col transition-all ${bigThreeOpen ? 'max-h-[42vh] md:max-h-none' : 'max-h-10 md:max-h-none'}`}>
+            <button
+              className="md:hidden flex items-center justify-between px-4 py-2.5 text-sm font-semibold text-subtext flex-shrink-0"
+              onClick={() => setBigThreeOpen((v) => !v)}
+            >
+              <span>Big 3</span>
+              <span className="text-xs">{bigThreeOpen ? '▾' : '▸'}</span>
+            </button>
+            <div className={`flex-1 overflow-hidden min-h-0 ${bigThreeOpen ? '' : 'hidden md:flex'} md:flex md:flex-col`}>
+              <BigThreePanel />
+            </div>
           </div>
-          <div className="flex-1 overflow-hidden">
+
+          {/* 타임라인 */}
+          <div className="flex-1 overflow-hidden min-h-0">
             <TimelineView />
           </div>
+
         </main>
       </div>
 

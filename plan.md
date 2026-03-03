@@ -288,3 +288,119 @@ To_do_AppbyTime/
 | D&D 다중 컨테이너 (3곳 간 이동) | 중간 | @dnd-kit의 다중 컨테이너 공식 예제 참고 |
 | localStorage 용량 한계 | 낮음 | 통상 5~10MB. 수년 치 데이터도 충분. 초과 시 오래된 날짜 자동 아카이브 |
 | 기기 간 동기화 불가 | 낮음 (MVP 범위 외) | Phase 3에서 export/import로 수동 백업 제공 |
+
+---
+
+## 추후 개발사항 (백로그)
+
+### 기기 간 데이터 동기화 (멀티 기기 지원)
+
+**현재 한계**: 데이터가 각 기기의 localStorage에만 저장되어 PC ↔ 모바일 간 동기화 불가.
+
+**확정 방향**: Supabase (PostgreSQL + Realtime + Auth)
+
+| 항목 | 내용 |
+|------|------|
+| 인증 | Google OAuth 또는 Magic Link |
+| 저장 방식 | `user_tasks`, `user_timeboxes` 테이블에 JSONB blob 저장 |
+| 동기화 방식 | Supabase Realtime (WebSocket) — 변경 즉시 반영 |
+| 코드 변경량 | Zustand persist `storage` 어댑터 교체 (신규 파일 2~3개, 기존 파일 ~5줄) |
+| 오프라인 | localStorage가 캐시 역할 유지 → 오프라인에서도 정상 동작 |
+| 멀티유저 대응 | user_id PK + RLS로 데이터 격리. 소규모(수백 명)는 현 구조로 충분 |
+
+**구현 예상 일정**: 반나절 (Supabase 설정 30분 + 동기화 미들웨어 2~3시간 + 스토어 연결 30분)
+
+> 현재는 각 기기 로컬에서만 사용하는 방식으로 운용. 멀티 기기 필요 시 이 항목부터 착수.
+
+---
+
+## 모바일 웹 대응 로드맵
+
+### Phase 1 — Quick Win ✅ 진행 예정
+**목표**: 최소 코드 변경으로 모바일에서 기본 동작 가능
+
+| 작업 | 파일 |
+|------|------|
+| @dnd-kit TouchSensor 추가 | `App.tsx` |
+| hover 의존 버튼 모바일 상시 표시 | `TaskCard.tsx`, `TimeBlock.tsx` |
+| 3컬럼 → `md:flex-row` + 모바일 패널 접기/펼치기 | `App.tsx` |
+
+**데스크탑 영향**: 없음 (`md:` breakpoint로 분리)
+
+---
+
+### Phase 2 — 모바일 퍼스트 레이아웃
+**목표**: 네이티브 앱 수준의 하단 탭 네비게이션
+
+| 작업 | 파일 |
+|------|------|
+| `useMediaQuery` 훅 | `src/hooks/useMediaQuery.ts` (신규) |
+| `ResponsiveShell` 분기 컨테이너 | `src/components/layout/ResponsiveShell.tsx` (신규) |
+| `MobileTabBar` 하단 탭 | `src/components/layout/MobileTabBar.tsx` (신규) |
+| 기존 3컬럼을 `DesktopLayout`으로 추출 | `src/components/layout/DesktopLayout.tsx` (신규) |
+
+**데스크탑 영향**: 없음 (DesktopLayout이 기존 코드 그대로 유지)
+
+---
+
+### Phase 3 — 터치 인터랙션 완성
+**목표**: 타임블록 이동/리사이즈가 터치에서도 완전 동작
+
+| 작업 | 파일 |
+|------|------|
+| `usePointerDrag` 훅 (Mouse → PointerEvent 통합) | `src/hooks/usePointerDrag.ts` (신규) |
+| `TimeBlock` 이동/리사이즈 PointerEvent 전환 | `TimeBlock.tsx` |
+| 리사이즈 핸들 터치 영역 확대 (2px → 44px 히트영역) | `TimeBlock.tsx` |
+| 모바일 태스크 배정 대안 UX (탭-투-어사인) | 미정 |
+
+**데스크탑 영향**: 낮음 (PointerEvent는 MouseEvent 상위 호환, 드래그 안정성 오히려 개선)
+
+---
+
+### Phase 4 — 폴리시
+**목표**: 완성도 높은 모바일 경험
+
+| 작업 | 내용 |
+|------|------|
+| PWA 지원 | `manifest.json`, 홈 화면 추가 |
+| Safe area 대응 | 노치/하단 바 `env(safe-area-inset-*)` |
+| 진동 피드백 | 드래그 시작 시 `navigator.vibrate()` |
+
+**데스크탑 영향**: 없음 (미지원 API는 graceful 무시)
+
+---
+
+## 패치노트
+
+### v0.1.1 — 예정 (Brain Dump UX 개선)
+
+#### P1 — Brain Dump 캘린더 배치 표시
+
+**배경**: 태스크를 캘린더로 드래그해 타임박스를 만들어도 Brain Dump 카드가 그대로 남아 있어, 이미 배치된 태스크인지 한눈에 구분이 안 됨.
+
+**구현 방향**:
+- `useCalendarStore`의 `timeboxes`를 BrainDumpPanel에서 참조
+- 해당 날짜 타임박스에 `taskId`가 존재하면 TaskCard에 배치 배지 표시
+- 예: 카드 우측에 `📅` 또는 `· 일정 있음` 텍스트 배지
+- 배치된 카드는 약간 흐리게(opacity) 처리하여 시각적으로 구분
+
+**영향 파일**:
+- `src/components/brain-dump/BrainDumpPanel.tsx` — timeboxes 참조, scheduledTaskIds Set 계산
+- `src/components/brain-dump/TaskCard.tsx` — `isScheduled` prop 추가, 배지 렌더링
+
+---
+
+#### P2 — Brain Dump 완료 태스크 하단 영역으로 분리
+
+**배경**: 현재 완료(`status === 'done'`) 태스크는 Brain Dump 목록에서 완전히 사라짐. 완료 항목을 확인하거나 되돌리기가 불가능함.
+
+**구현 방향**:
+- Brain Dump 필터를 `inbox` 전용에서 `inbox + done` 으로 확장
+- 패널 하단에 접기/펼치기 가능한 **"완료됨"** 섹션 추가
+- `done` 태스크는 해당 섹션에 모아서 표시 (취소선 + 흐린 색상)
+- 섹션 헤더: `완료됨 (N개)` — 클릭 시 토글
+- 완료 태스크에서도 체크버튼 클릭 시 `inbox`로 복원 가능 (기존 `toggleDone` 활용)
+
+**영향 파일**:
+- `src/components/brain-dump/BrainDumpPanel.tsx` — `doneTasks` 필터 추가, 완료 섹션 UI
+- `src/components/brain-dump/TaskCard.tsx` — 변경 없음 (기존 done 스타일 그대로 활용)

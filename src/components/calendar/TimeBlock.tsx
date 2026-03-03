@@ -131,7 +131,7 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
           data-handle="delete"
           onMouseDown={(e) => e.stopPropagation()}
           onClick={() => deleteTimebox(timebox.id)}
-          className="text-muted hover:text-red text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
+          className="text-muted hover:text-red text-[10px] opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
         >
           ✕
         </button>
@@ -171,7 +171,7 @@ export function TimeBlock({ timebox, task, columnInfo }: Props) {
       <div
         data-handle="resize"
         onMouseDown={handleResizeStart}
-        className="h-2 w-full cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+        className="h-2 w-full cursor-ns-resize flex items-center justify-center opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity flex-shrink-0"
       >
         <div className="w-6 h-0.5 rounded-full bg-current opacity-30" />
       </div>
