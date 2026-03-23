@@ -6,14 +6,12 @@ import { NotePanel } from '../note/NotePanel'
 export function DesktopLayout() {
   return (
     <main className="flex flex-1 overflow-hidden">
-      <div className="w-64 flex-shrink-0 border-r border-overlay overflow-hidden flex flex-col">
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <BrainDumpPanel />
-        </div>
-        <NotePanel />
+      <div className="w-64 flex-shrink-0 border-r border-overlay overflow-hidden">
+        <BrainDumpPanel />
       </div>
-      <div className="w-60 flex-shrink-0 border-r border-overlay overflow-hidden">
+      <div className="w-60 flex-shrink-0 border-r border-overlay overflow-hidden flex flex-col">
         <BigThreePanel />
+        <NotePanel />
       </div>
       <div className="flex-1 overflow-hidden">
         <TimelineView />

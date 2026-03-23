@@ -24,11 +24,12 @@ export function MobileLayout({ activeTab, onTabChange }: Props) {
             {/* Big 3 — 자연 높이 */}
             <BigThreePanel compact />
             <div className="border-t border-overlay flex-shrink-0" />
+            {/* 메모장 */}
+            <NotePanel />
             {/* Brain Dump — 나머지 공간 */}
             <div className="flex-1 min-h-0 overflow-hidden">
               <BrainDumpPanel />
             </div>
-            <NotePanel />
           </div>
         )}
         {activeTab === 'timeline' && <TimelineView />}

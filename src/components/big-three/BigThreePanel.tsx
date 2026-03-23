@@ -16,7 +16,7 @@ export function BigThreePanel({ compact = false }: { compact?: boolean }) {
   const filled = slots.filter(Boolean).length
 
   return (
-    <div className={`flex flex-col ${compact ? '' : 'h-full'}`}>
+    <div className={`flex flex-col ${compact ? '' : 'flex-shrink-0'}`}>
       <div className="px-4 py-3 border-b border-overlay">
         <h2 className="text-sm font-semibold text-subtext uppercase tracking-wider">
           Big 3
