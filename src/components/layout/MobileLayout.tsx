@@ -1,6 +1,7 @@
 import { BrainDumpPanel } from '../brain-dump/BrainDumpPanel'
 import { BigThreePanel } from '../big-three/BigThreePanel'
 import { TimelineView } from '../calendar/TimelineView'
+import { NotePanel } from '../note/NotePanel'
 
 type MobileTab = 'dump' | 'timeline'
 
@@ -27,6 +28,7 @@ export function MobileLayout({ activeTab, onTabChange }: Props) {
             <div className="flex-1 min-h-0 overflow-hidden">
               <BrainDumpPanel />
             </div>
+            <NotePanel />
           </div>
         )}
         {activeTab === 'timeline' && <TimelineView />}
