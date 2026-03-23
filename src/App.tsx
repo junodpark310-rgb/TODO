@@ -20,6 +20,7 @@ import { useMediaQuery } from './hooks/useMediaQuery'
 import { hapticLight, hapticSuccess } from './hooks/useHaptic'
 import { addMinutesToTime } from './utils/timeUtils'
 import { todayString } from './utils/date'
+import { useThemeStore } from './stores/useThemeStore'
 import type { Task } from './types/task'
 
 function DragPreview({ task }: { task: Task }) {
@@ -44,11 +45,23 @@ function scrollTimelineToNow() {
 function AppInner() {
   const { tasks, setBigThree, removeBigThree, selectedDate, rolloverTasks } = useTaskStore()
   const { addTimebox } = useCalendarStore()
+  const theme = useThemeStore((s) => s.theme)
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showStats, setShowStats] = useState(false)
   const [mobileTab, setMobileTab] = useState<'dump' | 'timeline'>('timeline')
   const importRef = useRef<HTMLInputElement>(null)
   const isMobile = useMediaQuery('(max-width: 767px)')
+
+  // 테마 class를 html 요소에 적용
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+  }, [theme])
 
   // 앱 시작 시 이전 날짜 미완료 태스크를 오늘로 자동 이전
   useEffect(() => {
@@ -161,6 +174,13 @@ function AppInner() {
 
           {/* 우측 액션 */}
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={toggleTheme}
+              className="text-xs px-2.5 py-1.5 rounded-lg text-muted hover:text-text hover:bg-overlay transition-colors"
+              title={theme === 'dark' ? '라이트 모드' : '다크 모드'}
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             <button
               onClick={() => setShowStats(true)}
               className="text-xs px-2.5 py-1.5 rounded-lg text-muted hover:text-text hover:bg-overlay transition-colors"

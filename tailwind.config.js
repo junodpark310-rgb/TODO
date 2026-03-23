@@ -1,20 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: '#6366f1',
-        surface: '#1e1e2e',
-        base: '#181825',
-        overlay: '#313244',
-        text: '#cdd6f4',
-        subtext: '#a6adc8',
-        muted: '#585b70',
-        green: '#a6e3a1',
-        red: '#f38ba8',
-        yellow: '#f9e2af',
-        blue: '#89b4fa',
+        primary: 'rgb(var(--color-primary) / <alpha-value>)',
+        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+        base: 'rgb(var(--color-base) / <alpha-value>)',
+        overlay: 'rgb(var(--color-overlay) / <alpha-value>)',
+        text: 'rgb(var(--color-text) / <alpha-value>)',
+        subtext: 'rgb(var(--color-subtext) / <alpha-value>)',
+        muted: 'rgb(var(--color-muted) / <alpha-value>)',
+        green: 'rgb(var(--color-green) / <alpha-value>)',
+        red: 'rgb(var(--color-red) / <alpha-value>)',
+        yellow: 'rgb(var(--color-yellow) / <alpha-value>)',
+        blue: 'rgb(var(--color-blue) / <alpha-value>)',
       },
     },
   },

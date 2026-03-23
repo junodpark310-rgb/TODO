@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --color-primary: 99 102 241;
+    --color-surface: 255 255 255;
+    --color-base: 245 245 250;
+    --color-overlay: 228 228 235;
+    --color-text: 30 30 46;
+    --color-subtext: 90 95 120;
+    --color-muted: 160 165 185;
+    --color-green: 34 160 80;
+    --color-red: 220 60 90;
+    --color-yellow: 200 150 30;
+    --color-blue: 60 120 220;
+    --color-scrollbar-track: 245 245 250;
+    --color-scrollbar-thumb: 200 200 210;
+  }
+
+  .dark {
+    --color-primary: 99 102 241;
+    --color-surface: 30 30 46;
+    --color-base: 24 24 37;
+    --color-overlay: 49 50 68;
+    --color-text: 205 214 244;
+    --color-subtext: 166 173 200;
+    --color-muted: 88 91 112;
+    --color-green: 166 227 161;
+    --color-red: 243 139 168;
+    --color-yellow: 249 226 175;
+    --color-blue: 137 180 250;
+    --color-scrollbar-track: 24 24 37;
+    --color-scrollbar-thumb: 69 71 90;
+  }
+}
+
 @layer utilities {
   /* iOS 노치/홈 인디케이터 safe area */
   .safe-top {
@@ -18,8 +52,8 @@
 
 body {
   margin: 0;
-  background-color: #181825;
-  color: #cdd6f4;
+  background-color: rgb(var(--color-base));
+  color: rgb(var(--color-text));
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
@@ -28,10 +62,10 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #181825;
+  background: rgb(var(--color-scrollbar-track));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #45475a;
+  background: rgb(var(--color-scrollbar-thumb));
   border-radius: 3px;
 }
