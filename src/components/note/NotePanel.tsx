@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNoteStore } from '../../stores/useNoteStore'
-import { useTaskStore } from '../../stores/useTaskStore'
 
 export function NotePanel() {
-  const selectedDate = useTaskStore((s) => s.selectedDate)
-  const notes = useNoteStore((s) => s.notes)
+  const getNote = useNoteStore((s) => s.getNote)
   const setNote = useNoteStore((s) => s.setNote)
 
   const [isOpen, setIsOpen] = useState(true)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const content = notes[selectedDate] ?? ''
+  const content = getNote()
 
   useEffect(() => {
     if (isOpen && textareaRef.current) {
@@ -42,7 +40,7 @@ export function NotePanel() {
           <textarea
             ref={textareaRef}
             value={content}
-            onChange={(e) => setNote(selectedDate, e.target.value)}
+            onChange={(e) => setNote(e.target.value)}
             placeholder="미팅 노트, 메모 등을 자유롭게 작성하세요..."
             className="w-full min-h-[200px] h-full bg-transparent text-text text-sm leading-relaxed resize-none outline-none placeholder:text-muted/50"
             spellCheck={false}

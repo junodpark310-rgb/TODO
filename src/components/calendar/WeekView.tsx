@@ -64,7 +64,7 @@ export function WeekView() {
       </div>
 
       {/* 타임라인 */}
-      <div id="calendar-scroll" className="flex-1 overflow-y-auto">
+      <div id="calendar-scroll" className="flex-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
         <div className="flex" style={{ height: totalHeight }}>
 
           {/* 시간 레이블 */}

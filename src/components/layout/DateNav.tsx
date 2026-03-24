@@ -53,7 +53,7 @@ export function DateNav() {
       {!isToday && (
         <button
           onClick={() => setSelectedDate(todayString())}
-          className="text-xs text-muted hover:text-primary transition-colors"
+          className="text-xs text-muted hover:text-primary transition-colors ml-2 px-1.5 py-0.5 rounded border border-muted/30 hover:border-primary/50"
         >
           오늘로
         </button>
