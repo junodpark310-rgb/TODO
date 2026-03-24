@@ -22,40 +22,42 @@ export function DateNav() {
   }, [showPicker])
 
   return (
-    <div ref={containerRef} className="relative flex items-center gap-2">
-      <button
-        onClick={() => setSelectedDate(addDays(selectedDate, -1))}
-        className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-overlay transition-colors"
-      >
-        ‹
-      </button>
+    <div ref={containerRef} className="relative flex flex-col items-center">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-overlay transition-colors"
+        >
+          ‹
+        </button>
 
-      {/* 날짜 버튼 — 클릭하면 피커 열림 */}
-      <button
-        onClick={() => setShowPicker((v) => !v)}
-        className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-overlay transition-colors"
-      >
-        <span className="text-sm font-medium text-text">
-          {formatDisplayDate(selectedDate)}
-        </span>
-        {isToday && (
-          <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary">오늘</span>
-        )}
-      </button>
+        {/* 날짜 버튼 — 클릭하면 피커 열림 */}
+        <button
+          onClick={() => setShowPicker((v) => !v)}
+          className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-overlay transition-colors"
+        >
+          <span className="text-sm font-medium text-text">
+            {formatDisplayDate(selectedDate)}
+          </span>
+          {isToday && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-primary/20 text-primary">오늘</span>
+          )}
+        </button>
 
-      <button
-        onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-        className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-overlay transition-colors"
-      >
-        ›
-      </button>
+        <button
+          onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-overlay transition-colors"
+        >
+          ›
+        </button>
+      </div>
 
       {!isToday && (
         <button
           onClick={() => setSelectedDate(todayString())}
-          className="text-xs text-muted hover:text-primary transition-colors ml-2 px-1.5 py-0.5 rounded border border-muted/30 hover:border-primary/50"
+          className="text-[10px] text-muted hover:text-primary transition-colors -mt-0.5"
         >
-          오늘로
+          오늘로 돌아가기
         </button>
       )}
 

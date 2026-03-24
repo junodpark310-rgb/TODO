@@ -18,14 +18,14 @@ function getSelectedOrCurrentLine(textarea: HTMLTextAreaElement): string | null 
 
 export function NotePanel() {
   const addTask = useTaskStore((s) => s.addTask)
-  const getNote = useNoteStore((s) => s.getNote)
+  const globalNote = useNoteStore((s) => s.globalNote)
   const setNote = useNoteStore((s) => s.setNote)
 
   const [isOpen, setIsOpen] = useState(true)
   const [flash, setFlash] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const content = getNote()
+  const content = globalNote
 
   useEffect(() => {
     if (isOpen && textareaRef.current) {

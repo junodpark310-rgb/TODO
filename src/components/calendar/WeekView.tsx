@@ -35,36 +35,35 @@ export function WeekView() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 날짜 헤더 */}
-      <div className="flex flex-shrink-0 border-b border-overlay">
-        {/* 시간 레이블 자리 */}
-        <div style={{ width: LABEL_WIDTH }} className="flex-shrink-0" />
-        {/* 요일 헤더 */}
-        {weekDates.map((date) => {
-          const isToday = date === today
-          const isSelected = date === selectedDate
-          return (
-            <div
-              key={date}
-              className={`flex-1 text-center py-2 border-l border-overlay ${
-                isToday ? 'bg-primary/10' : ''
-              }`}
-            >
-              <p className={`text-[10px] ${isToday ? 'text-primary' : 'text-muted'}`}>
-                {formatDayName(date)}
-              </p>
-              <p className={`text-sm font-semibold mt-0.5 ${
-                isToday ? 'text-primary' : isSelected ? 'text-text' : 'text-subtext'
-              }`}>
-                {formatShortDate(date)}
-              </p>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* 타임라인 */}
-      <div id="calendar-scroll" className="flex-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
+      {/* 타임라인 (헤더 포함 — 스크롤바 정렬 일치) */}
+      <div id="calendar-scroll" className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* 날짜 헤더 — sticky */}
+        <div className="flex flex-shrink-0 border-b border-overlay sticky top-0 z-10 bg-surface">
+          {/* 시간 레이블 자리 */}
+          <div style={{ width: LABEL_WIDTH }} className="flex-shrink-0" />
+          {/* 요일 헤더 */}
+          {weekDates.map((date) => {
+            const isToday = date === today
+            const isSelected = date === selectedDate
+            return (
+              <div
+                key={date}
+                className={`flex-1 text-center py-2 border-l border-overlay ${
+                  isToday ? 'bg-primary/10' : ''
+                }`}
+              >
+                <p className={`text-[10px] ${isToday ? 'text-primary' : 'text-muted'}`}>
+                  {formatDayName(date)}
+                </p>
+                <p className={`text-sm font-semibold mt-0.5 ${
+                  isToday ? 'text-primary' : isSelected ? 'text-text' : 'text-subtext'
+                }`}>
+                  {formatShortDate(date)}
+                </p>
+              </div>
+            )
+          })}
+        </div>
         <div className="flex" style={{ height: totalHeight }}>
 
           {/* 시간 레이블 */}
