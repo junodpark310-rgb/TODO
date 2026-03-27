@@ -5,10 +5,8 @@ import { generateId } from '../utils/id'
 
 interface NoteStore {
   notes: Note[]
-  /** AI API 키 (OpenAI) */
+  /** AI API 키 (Gemini) */
   aiApiKey: string
-  /** 레거시 마이그레이션 완료 여부 */
-  _migrated: boolean
 
   addNote: (content?: string, color?: NoteColor) => string
   updateNote: (id: string, updates: Partial<Pick<Note, 'content' | 'color'>>) => void
@@ -21,7 +19,6 @@ export const useNoteStore = create<NoteStore>()(
     (set) => ({
       notes: [],
       aiApiKey: '',
-      _migrated: false,
 
       addNote: (content = '', color = 'yellow') => {
         const id = generateId()
@@ -49,23 +46,29 @@ export const useNoteStore = create<NoteStore>()(
     }),
     {
       name: 'timebox-notes',
-      onRehydrateStorage: () => (state) => {
-        if (!state) return
-        // 레거시 마이그레이션: 단일 globalNote → 개별 Note 변환
-        const raw = JSON.parse(localStorage.getItem('timebox-notes') ?? '{}')
-        const legacyGlobal = raw?.state?.globalNote
-        if (!state._migrated && typeof legacyGlobal === 'string' && legacyGlobal.trim()) {
+      version: 1,
+      migrate: (persisted: unknown) => {
+        const old = persisted as Record<string, unknown>
+        const notes: Note[] = []
+
+        // 레거시: globalNote (string) → 개별 Note 변환
+        if (typeof old.globalNote === 'string' && old.globalNote.trim()) {
           const now = new Date().toISOString()
-          const migratedNote: Note = {
+          notes.push({
             id: generateId(),
-            content: legacyGlobal,
+            content: old.globalNote,
             createdAt: now,
             updatedAt: now,
             color: 'yellow',
-          }
-          useNoteStore.setState({ notes: [migratedNote], _migrated: true })
-        } else if (!state._migrated) {
-          useNoteStore.setState({ _migrated: true })
+          })
+        }
+
+        // notes가 이미 배열이면 유지, 아니면 빈 배열
+        const existingNotes = Array.isArray(old.notes) ? old.notes : notes
+
+        return {
+          notes: existingNotes.length > 0 ? existingNotes : notes,
+          aiApiKey: typeof old.aiApiKey === 'string' ? old.aiApiKey : '',
         }
       },
     }
