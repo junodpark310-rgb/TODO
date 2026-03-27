@@ -26,7 +26,7 @@ export async function organizeNoteWithAi(
     throw new Error('메모 내용이 비어있습니다.')
   }
 
-  const model = 'gemini-2.5-flash'
+  const model = 'gemini-3-flash-preview'
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
 
   const response = await fetch(url, {
