@@ -55,7 +55,7 @@ export function NoteCard({ noteId, onClose }: Props) {
   const handleAiOrganize = useCallback(async () => {
     if (!note || aiLoading) return
     if (!aiApiKey) {
-      setAiError('API 키를 먼저 설정하세요 (설정 아이콘)')
+      setAiError('Gemini API 키를 먼저 설정하세요 (설정 아이콘)')
       return
     }
     setAiLoading(true)

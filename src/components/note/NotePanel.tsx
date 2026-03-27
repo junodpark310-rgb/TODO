@@ -104,7 +104,7 @@ export function NotePanel() {
               type="password"
               value={apiKeyInput}
               onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="OpenAI API Key (sk-...)"
+              placeholder="Gemini API Key (AIza...)"
               className="flex-1 text-xs px-2 py-1.5 bg-overlay/30 border border-overlay rounded text-text placeholder:text-muted/50 outline-none focus:border-primary"
             />
             <button
