@@ -1,54 +1,53 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNoteStore } from '../../stores/useNoteStore'
-import { useTaskStore } from '../../stores/useTaskStore'
+import { NoteCard } from './NoteCard'
 
-function getSelectedOrCurrentLine(textarea: HTMLTextAreaElement): string | null {
-  const { selectionStart, selectionEnd, value } = textarea
-
-  // 텍스트가 선택된 경우: 선택된 텍스트 사용
-  if (selectionStart !== selectionEnd) {
-    return value.slice(selectionStart, selectionEnd).trim()
-  }
-
-  // 선택 없으면: 커서가 위치한 줄 전체 사용
-  const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1
-  const lineEnd = value.indexOf('\n', selectionStart)
-  return value.slice(lineStart, lineEnd === -1 ? value.length : lineEnd).trim()
+/** 48시간 경과 메모 수를 반환 */
+function countStaleNotes(notes: { createdAt: string }[]): number {
+  const threshold = Date.now() - 48 * 60 * 60 * 1000
+  return notes.filter((n) => new Date(n.createdAt).getTime() < threshold).length
 }
 
 export function NotePanel() {
-  const addTask = useTaskStore((s) => s.addTask)
-  const globalNote = useNoteStore((s) => s.globalNote)
-  const setNote = useNoteStore((s) => s.setNote)
+  const notes = useNoteStore((s) => s.notes)
+  const addNote = useNoteStore((s) => s.addNote)
+  const aiApiKey = useNoteStore((s) => s.aiApiKey)
+  const setAiApiKey = useNoteStore((s) => s.setAiApiKey)
 
   const [isOpen, setIsOpen] = useState(true)
-  const [flash, setFlash] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [apiKeyInput, setApiKeyInput] = useState(aiApiKey)
 
-  const content = globalNote
-
+  // 48시간 경과 메모 브라우저 알림
   useEffect(() => {
-    if (isOpen && textareaRef.current) {
-      const el = textareaRef.current
-      el.style.height = 'auto'
-      el.style.height = `${el.scrollHeight}px`
+    const staleCount = countStaleNotes(notes)
+    if (staleCount === 0) return
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
     }
-  }, [content, isOpen])
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Timebox 메모 알림', {
+        body: `${staleCount}개의 메모가 48시간 이상 경과했습니다. 확인해주세요!`,
+        icon: '⏱',
+      })
+    }
+  }, []) // 앱 시작 시 1회
 
-  const handleAddTask = useCallback(() => {
-    if (!textareaRef.current) return
-    const text = getSelectedOrCurrentLine(textareaRef.current)
-    if (!text) return
+  const handleAddNote = useCallback(() => {
+    addNote()
+  }, [addNote])
 
-    addTask(text)
+  const handleSaveApiKey = useCallback(() => {
+    setAiApiKey(apiKeyInput.trim())
+    setShowSettings(false)
+  }, [apiKeyInput, setAiApiKey])
 
-    // 추가 성공 피드백
-    setFlash(true)
-    setTimeout(() => setFlash(false), 600)
-  }, [addTask])
+  const staleCount = countStaleNotes(notes)
 
   return (
     <div className="flex flex-col flex-1 min-h-0 border-t border-overlay">
+      {/* 헤더 */}
       <div className="flex items-center px-4 py-2.5 flex-shrink-0">
         <button
           onClick={() => setIsOpen((v) => !v)}
@@ -58,38 +57,93 @@ export function NotePanel() {
           <span className="text-sm font-semibold text-subtext uppercase tracking-wider">
             메모장
           </span>
-          {!isOpen && content.length > 0 && (
-            <span className="text-xs text-muted ml-auto truncate max-w-[100px]">
-              {content.split('\n')[0]}
+          {!isOpen && notes.length > 0 && (
+            <span className="text-xs text-muted ml-auto">
+              {notes.length}개
             </span>
           )}
         </button>
 
-        {isOpen && (
+        <div className="flex items-center gap-1 ml-2">
+          {/* 48시간 경과 배지 */}
+          {staleCount > 0 && (
+            <span className="text-[10px] bg-red/20 text-red px-1.5 py-0.5 rounded-full font-medium">
+              {staleCount} 오래됨
+            </span>
+          )}
+
+          {/* AI 설정 */}
           <button
-            onClick={handleAddTask}
-            className={`ml-2 text-xs px-2 py-1 rounded transition-colors flex-shrink-0 ${
-              flash
-                ? 'bg-green/20 text-green'
-                : 'text-muted hover:text-text hover:bg-overlay/50'
+            onClick={() => setShowSettings((v) => !v)}
+            className={`text-xs px-1.5 py-1 rounded transition-colors ${
+              aiApiKey ? 'text-green' : 'text-muted hover:text-text hover:bg-overlay/50'
             }`}
-            title="선택한 텍스트 또는 현재 줄을 태스크로 추가"
+            title="AI API 키 설정"
           >
-            {flash ? '✓ 추가됨' : '+ 태스크'}
+            {aiApiKey ? '⚡' : '⚙'}
           </button>
-        )}
+
+          {/* 새 메모 추가 */}
+          {isOpen && (
+            <button
+              onClick={handleAddNote}
+              className="text-xs px-2 py-1 rounded text-muted hover:text-text hover:bg-overlay/50 transition-colors flex-shrink-0"
+              title="새 메모 추가"
+            >
+              + 메모
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* AI API 키 설정 패널 */}
+      {showSettings && (
+        <div className="px-4 pb-2">
+          <div className="flex gap-1.5 items-center">
+            <input
+              type="password"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              placeholder="OpenAI API Key (sk-...)"
+              className="flex-1 text-xs px-2 py-1.5 bg-overlay/30 border border-overlay rounded text-text placeholder:text-muted/50 outline-none focus:border-primary"
+            />
+            <button
+              onClick={handleSaveApiKey}
+              className="text-xs px-2 py-1.5 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors"
+            >
+              저장
+            </button>
+          </div>
+          <p className="text-[9px] text-muted mt-1">
+            AI 정리 기능에 사용됩니다. 키는 로컬에만 저장됩니다.
+          </p>
+        </div>
+      )}
+
+      {/* 메모 목록 */}
       {isOpen && (
         <div className="flex-1 min-h-0 px-3 pb-3 overflow-y-auto">
-          <textarea
-            ref={textareaRef}
-            value={content}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="미팅 노트, 메모 등을 자유롭게 작성하세요..."
-            className="w-full min-h-[200px] h-full bg-transparent text-text text-sm leading-relaxed resize-none outline-none placeholder:text-muted/50"
-            spellCheck={false}
-          />
+          {notes.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-xs text-muted/60 mb-2">메모가 없습니다</p>
+              <button
+                onClick={handleAddNote}
+                className="text-xs text-primary hover:text-primary/80 transition-colors"
+              >
+                + 첫 메모 작성하기
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {notes.map((note) => (
+                <NoteCard
+                  key={note.id}
+                  noteId={note.id}
+                  onClose={() => {}}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
