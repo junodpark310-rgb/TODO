@@ -11,6 +11,7 @@ interface NoteStore {
   addNote: (content?: string, color?: NoteColor) => string
   updateNote: (id: string, updates: Partial<Pick<Note, 'content' | 'color'>>) => void
   deleteNote: (id: string) => void
+  reorderNotes: (fromIndex: number, toIndex: number) => void
   setAiApiKey: (key: string) => void
 }
 
@@ -40,6 +41,15 @@ export const useNoteStore = create<NoteStore>()(
 
       deleteNote: (id) => {
         set((state) => ({ notes: state.notes.filter((n) => n.id !== id) }))
+      },
+
+      reorderNotes: (fromIndex, toIndex) => {
+        set((state) => {
+          const next = [...state.notes]
+          const [moved] = next.splice(fromIndex, 1)
+          next.splice(toIndex, 0, moved)
+          return { notes: next }
+        })
       },
 
       setAiApiKey: (key) => set({ aiApiKey: key }),

@@ -46,6 +46,8 @@ export function TaskCard({ task, isScheduled = false, onAssign }: Props) {
   const doneCount = task.subtasks.filter((s) => s.isDone).length
   const totalCount = task.subtasks.length
   const hasSubtasks = totalCount > 0
+  const hoursAgo = (Date.now() - new Date(task.createdAt).getTime()) / (1000 * 60 * 60)
+  const isStale = task.status !== 'done' && hoursAgo >= 48
 
   return (
     <div
@@ -53,7 +55,9 @@ export function TaskCard({ task, isScheduled = false, onAssign }: Props) {
       style={style}
       {...listeners}
       {...attributes}
-      className="group flex flex-col px-3 py-2 bg-overlay rounded-lg border border-transparent hover:border-muted transition-all cursor-grab active:cursor-grabbing"
+      className={`group flex flex-col px-3 py-2 bg-overlay rounded-lg border hover:border-muted transition-all cursor-grab active:cursor-grabbing ${
+        isStale ? 'border-red/40 ring-1 ring-red/20' : 'border-transparent'
+      }`}
     >
       {/* 메인 행 */}
       <div className="flex items-center gap-2">
@@ -83,6 +87,13 @@ export function TaskCard({ task, isScheduled = false, onAssign }: Props) {
             className={`flex-1 text-sm ${task.status === 'done' ? 'line-through text-muted' : 'text-text'}`}
           >
             {task.title}
+          </span>
+        )}
+
+        {/* 48시간 경과 배지 */}
+        {isStale && (
+          <span className="text-[10px] text-red bg-red/10 px-1 py-0.5 rounded flex-shrink-0" title="48시간 이상 미완료">
+            {Math.floor(hoursAgo / 24)}일
           </span>
         )}
 

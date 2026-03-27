@@ -1,4 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { useNoteStore } from '../../stores/useNoteStore'
 import { NoteCard } from './NoteCard'
 
@@ -11,12 +23,17 @@ function countStaleNotes(notes: { createdAt: string }[]): number {
 export function NotePanel() {
   const notes = useNoteStore((s) => s.notes)
   const addNote = useNoteStore((s) => s.addNote)
+  const reorderNotes = useNoteStore((s) => s.reorderNotes)
   const aiApiKey = useNoteStore((s) => s.aiApiKey)
   const setAiApiKey = useNoteStore((s) => s.setAiApiKey)
 
   const [isOpen, setIsOpen] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
   const [apiKeyInput, setApiKeyInput] = useState(aiApiKey)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  )
 
   // 48시간 경과 메모 브라우저 알림
   useEffect(() => {
@@ -42,6 +59,17 @@ export function NotePanel() {
     setAiApiKey(apiKeyInput.trim())
     setShowSettings(false)
   }, [apiKeyInput, setAiApiKey])
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const fromIndex = notes.findIndex((n) => n.id === active.id)
+    const toIndex = notes.findIndex((n) => n.id === over.id)
+    if (fromIndex !== -1 && toIndex !== -1) {
+      reorderNotes(fromIndex, toIndex)
+    }
+  }, [notes, reorderNotes])
 
   const staleCount = countStaleNotes(notes)
 
@@ -134,15 +162,22 @@ export function NotePanel() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {notes.map((note) => (
-                <NoteCard
-                  key={note.id}
-                  noteId={note.id}
-                  onClose={() => {}}
-                />
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={notes.map((n) => n.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="flex flex-col gap-2">
+                  {notes.map((note) => (
+                    <NoteCard key={note.id} noteId={note.id} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       )}

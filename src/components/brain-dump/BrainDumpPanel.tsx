@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { useTaskStore } from '../../stores/useTaskStore'
 import { useCalendarStore } from '../../stores/useCalendarStore'
@@ -31,6 +31,25 @@ export function BrainDumpPanel() {
   const doneTasks = tasks.filter(
     (t) => t.date === selectedDate && t.status === 'done'
   )
+
+  // 48시간 경과 미완료 태스크 알림
+  useEffect(() => {
+    const threshold = Date.now() - 48 * 60 * 60 * 1000
+    const staleTasks = tasks.filter(
+      (t) => t.status !== 'done' && new Date(t.createdAt).getTime() < threshold
+    )
+    if (staleTasks.length === 0) return
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Timebox 태스크 알림', {
+        body: `${staleTasks.length}개의 태스크가 48시간 이상 미완료 상태입니다!`,
+        icon: '⏱',
+      })
+    }
+  }, []) // 앱 시작 시 1회
 
   /** 선택일 마지막 블록 다음에 태스크를 타임라인에 배치 */
   function handleAssign(task: Task) {
